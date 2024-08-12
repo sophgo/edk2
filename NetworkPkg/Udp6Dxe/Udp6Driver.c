@@ -2,7 +2,7 @@
   Driver Binding functions and Service Binding functions for the Network driver module.
 
   Copyright (c) 2009 - 2018, Intel Corporation. All rights reserved.<BR>
-  Copyright (c) Microsoft Corporation
+
   SPDX-License-Identifier: BSD-2-Clause-Patent
 
 **/
@@ -596,13 +596,6 @@ Udp6DriverEntryPoint (
   )
 {
   EFI_STATUS  Status;
-  UINT32      Random;
-
-  Status = PseudoRandomU32 (&Random);
-  if (EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_ERROR, "%a failed to generate random number: %r\n", __func__, Status));
-    return Status;
-  }
 
   //
   // Install the Udp6DriverBinding and Udp6ComponentName protocols.
@@ -621,7 +614,7 @@ Udp6DriverEntryPoint (
     // Initialize the UDP random port.
     //
     mUdp6RandomPort = (UINT16)(
-                               ((UINT16)Random) %
+                               ((UINT16)NetRandomInitSeed ()) %
                                UDP6_PORT_KNOWN +
                                UDP6_PORT_KNOWN
                                );

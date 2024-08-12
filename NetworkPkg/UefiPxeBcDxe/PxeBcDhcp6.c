@@ -2180,7 +2180,7 @@ PxeBcDhcp6Discover (
   UINTN                            ReadSize;
   UINT16                           OpCode;
   UINT16                           OpLen;
-  UINT32                           Random;
+  UINT32                           Xid;
   EFI_STATUS                       Status;
   UINTN                            DiscoverLenNeeded;
 
@@ -2198,12 +2198,6 @@ PxeBcDhcp6Discover (
     return EFI_DEVICE_ERROR;
   }
 
-  Status = PseudoRandomU32 (&Random);
-  if (EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_ERROR, "%a failed to generate random number: %r\n", __func__, Status));
-    return Status;
-  }
-
   DiscoverLenNeeded = sizeof (EFI_PXE_BASE_CODE_DHCPV6_PACKET);
   Discover          = AllocateZeroPool (DiscoverLenNeeded);
   if (Discover == NULL) {
@@ -2213,7 +2207,8 @@ PxeBcDhcp6Discover (
   //
   // Build the discover packet by the cached request packet before.
   //
-  Discover->TransactionId = HTONL (Random);
+  Xid                     = NET_RANDOM (NetRandomInitSeed ());
+  Discover->TransactionId = HTONL (Xid);
   Discover->MessageType   = Request->Dhcp6.Header.MessageType;
   RequestOpt              = Request->Dhcp6.Option;
   DiscoverOpt             = Discover->DhcpOptions;

@@ -2,7 +2,6 @@
   The driver binding and service binding protocol for IP4 driver.
 
 Copyright (c) 2005 - 2019, Intel Corporation. All rights reserved.<BR>
-Copyright (c) Microsoft Corporation
 (C) Copyright 2015 Hewlett-Packard Development Company, L.P.<BR>
 
 SPDX-License-Identifier: BSD-2-Clause-Patent
@@ -550,17 +549,10 @@ Ip4DriverBindingStart (
   EFI_IP4_CONFIG2_PROTOCOL  *Ip4Cfg2;
   UINTN                     Index;
   IP4_CONFIG2_DATA_ITEM     *DataItem;
-  UINT32                    Random;
 
   IpSb     = NULL;
   Ip4Cfg2  = NULL;
   DataItem = NULL;
-
-  Status = PseudoRandomU32 (&Random);
-  if (EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_ERROR, "%a failed to generate random number: %r\n", __func__, Status));
-    return Status;
-  }
 
   //
   // Test for the Ip4 service binding protocol
@@ -661,7 +653,7 @@ Ip4DriverBindingStart (
   //
   // Initialize the IP4 ID
   //
-  mIp4Id = (UINT16)Random;
+  mIp4Id = (UINT16)NET_RANDOM (NetRandomInitSeed ());
 
   return Status;
 
