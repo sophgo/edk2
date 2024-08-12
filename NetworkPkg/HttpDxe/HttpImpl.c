@@ -1,7 +1,7 @@
 /** @file
   Implementation of EFI_HTTP_PROTOCOL protocol interfaces.
 
-  Copyright (c) 2015, Intel Corporation. All rights reserved.<BR>
+  Copyright (c) 2015 - 2021, Intel Corporation. All rights reserved.<BR>
   (C) Copyright 2015-2016 Hewlett Packard Enterprise Development LP<BR>
   Copyright (C) 2024 Advanced Micro Devices, Inc. All rights reserved.<BR>
 
@@ -341,18 +341,14 @@ EfiHttpRequest (
     //
     Url    = HttpInstance->Url;
     UrlLen = StrLen (Request->Url) + 1;
-    if (UrlLen > HttpInstance->UrlLen) {
+    if (UrlLen > HTTP_URL_BUFFER_LEN) {
       Url = AllocateZeroPool (UrlLen);
       if (Url == NULL) {
         return EFI_OUT_OF_RESOURCES;
       }
 
-      if (HttpInstance->Url != NULL) {
-        FreePool (HttpInstance->Url);
-      }
-
-      HttpInstance->Url    = Url;
-      HttpInstance->UrlLen = UrlLen;
+      FreePool (HttpInstance->Url);
+      HttpInstance->Url = Url;
     }
 
     UnicodeStrToAsciiStrS (Request->Url, Url, UrlLen);
