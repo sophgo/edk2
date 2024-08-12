@@ -82,8 +82,5 @@
   gEfiTcp6ProtocolGuid                          ## BY_START
   gEfiTcp6ServiceBindingProtocolGuid            ## BY_START
 
-[Depex]
-  gEfiHash2ServiceBindingProtocolGuid
-
 [UserExtensions.TianoCore."ExtraFiles"]
   TcpDxeExtra.uni

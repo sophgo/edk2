@@ -1,7 +1,6 @@
 /** @file
 
 Copyright (c) 2006 - 2018, Intel Corporation. All rights reserved.<BR>
-Copyright (c) Microsoft Corporation
 SPDX-License-Identifier: BSD-2-Clause-Patent
 
 **/
@@ -190,13 +189,6 @@ Dhcp4CreateService (
 {
   DHCP_SERVICE  *DhcpSb;
   EFI_STATUS    Status;
-  UINT32        Random;
-
-  Status = PseudoRandomU32 (&Random);
-  if (EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_ERROR, "%a failed to generate random number: %r\n", __func__, Status));
-    return Status;
-  }
 
   *Service = NULL;
   DhcpSb   = AllocateZeroPool (sizeof (DHCP_SERVICE));
@@ -211,7 +203,7 @@ Dhcp4CreateService (
   DhcpSb->Image        = ImageHandle;
   InitializeListHead (&DhcpSb->Children);
   DhcpSb->DhcpState = Dhcp4Stopped;
-  DhcpSb->Xid       = Random;
+  DhcpSb->Xid       = NET_RANDOM (NetRandomInitSeed ());
   CopyMem (
     &DhcpSb->ServiceBinding,
     &mDhcp4ServiceBindingTemplate,
