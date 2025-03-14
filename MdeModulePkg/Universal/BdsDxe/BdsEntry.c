@@ -686,6 +686,7 @@ BdsEntry (
   EFI_EVENT                       HotkeyTriggered;
   UINT64                          OsIndication;
   UINTN                           DataSize;
+  UINTN                           VarSize;
   EFI_STATUS                      Status;
   UINT32                          BootOptionSupport;
   UINT16                          BootTimeOut;
@@ -759,7 +760,20 @@ BdsEntry (
   //
   // Initialize L"Timeout" EFI global variable.
   //
-  BootTimeOut = PcdGet16 (PcdPlatformBootTimeOut);
+  VarSize = sizeof (UINT16);
+  Status = gRT->GetVariable (
+		  EFI_TIME_OUT_VARIABLE_NAME,
+		  &gEfiGlobalVariableGuid,
+		  NULL,
+		  &VarSize,
+		  &BootTimeOut
+		  );
+  if (EFI_ERROR (Status)) {
+    BootTimeOut = PcdGet16 (PcdPlatformBootTimeOut);
+  } else {
+    PcdSet16S (PcdPlatformBootTimeOut, BootTimeOut);
+  }
+
   if (BootTimeOut != 0xFFFF) {
     //
     // If time out value equal 0xFFFF, no need set to 0xFFFF to variable area because UEFI specification
