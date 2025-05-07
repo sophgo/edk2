@@ -91,6 +91,7 @@
   gEfiMdeModulePkgTokenSpaceGuid.PcdConOutRow                  ## CONSUMES
   gEfiMdeModulePkgTokenSpaceGuid.PcdConOutColumn               ## CONSUMES
   gEfiMdePkgTokenSpaceGuid.PcdPlatformBootTimeOut              ## CONSUMES
+  gEfiMdePkgTokenSpaceGuid.PcdPlatformBootTimeOutDefault       ## CONSUMES
   gEfiMdeModulePkgTokenSpaceGuid.PcdVideoHorizontalResolution  ## CONSUMES
   gEfiMdeModulePkgTokenSpaceGuid.PcdVideoVerticalResolution    ## CONSUMES
   gEfiMdeModulePkgTokenSpaceGuid.PcdSetupConOutColumn          ## CONSUMES
