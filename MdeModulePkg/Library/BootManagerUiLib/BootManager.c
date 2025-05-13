@@ -573,6 +573,11 @@ UpdateBootManager (
       continue;
     }
 
+    // Don't display bootoption: BootManagerMenuApp in BootManager Form
+    if(StrCmp(BootOption[Index].Description,L"UEFI BootManagerMenuApp") == 0) {
+      continue;
+    }
+
     //
     // Don't display UiApp within the boot options
     //
