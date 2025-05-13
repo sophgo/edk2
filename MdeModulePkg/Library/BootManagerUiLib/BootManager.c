@@ -550,6 +550,11 @@ UpdateBootManager (
       continue;
     }
 
+    // Don't display bootoption: BootManagerMenuApp in BootManager Form
+    if(StrCmp(BootOption[Index].Description,L"UEFI BootManagerMenuApp") == 0) {
+      continue;
+    }
+
     //
     // Group the legacy boot option in the sub title created dynamically
     //
