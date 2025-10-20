@@ -1846,6 +1846,81 @@ MergeMemoryMapDescriptor (
   return NEXT_MEMORY_DESCRIPTOR (MemoryMapDescriptor, DescriptorSize);
 }
 
+STATIC UINT8 TempMemoryMap[EFI_PAGE_SIZE * 2];
+
+STATIC
+EFI_STATUS
+SplitMemoryMap(
+  IN EFI_MEMORY_DESCRIPTOR      *MemoryMapStart,
+  IN OUT UINTN                  *UsedMemoryMapSize,
+  IN UINTN                      TotalMemoryMapSize,
+  IN UINTN                      DescriptorSize,
+  IN UINTN                      From,
+  IN UINTN                      Grain
+  )
+{
+  INTN                          TempIterator;
+  INTN                          Iterator;
+  EFI_PHYSICAL_ADDRESS          Left, TempStart;
+  EFI_MEMORY_DESCRIPTOR         *SourceDescriptor;
+  EFI_MEMORY_DESCRIPTOR         *DestinationDescriptor;
+
+  TempIterator = 0;
+
+  for (Iterator = 0, SourceDescriptor = MemoryMapStart;
+       Iterator < (*UsedMemoryMapSize) / DescriptorSize;
+       ++Iterator, SourceDescriptor = NEXT_MEMORY_DESCRIPTOR(SourceDescriptor, DescriptorSize)) {
+    if ( SourceDescriptor->PhysicalStart > From &&
+         SourceDescriptor->NumberOfPages * EFI_PAGE_SIZE > Grain ) {
+      /* split this region */
+      TempIterator += ((SourceDescriptor->NumberOfPages * EFI_PAGE_SIZE + (Grain - 1)) / Grain) - 1;
+    }
+  }
+
+  if (TempIterator * DescriptorSize + *UsedMemoryMapSize> TotalMemoryMapSize) {
+    *UsedMemoryMapSize += TempIterator * DescriptorSize;
+    return EFI_BUFFER_TOO_SMALL;
+  }
+
+  TempIterator = 0;
+  DestinationDescriptor = (EFI_MEMORY_DESCRIPTOR *)TempMemoryMap;
+
+  for (Iterator = 0, SourceDescriptor = MemoryMapStart;
+       Iterator < (*UsedMemoryMapSize) / DescriptorSize;
+       ++Iterator, SourceDescriptor = NEXT_MEMORY_DESCRIPTOR(SourceDescriptor, DescriptorSize)) {
+    if ( SourceDescriptor->PhysicalStart > From &&
+         SourceDescriptor->NumberOfPages * EFI_PAGE_SIZE > Grain ) {
+      /* split this region */
+      Left = SourceDescriptor->NumberOfPages * EFI_PAGE_SIZE;
+      TempStart = SourceDescriptor->PhysicalStart;
+      while (Left > Grain) {
+        CopyMem(DestinationDescriptor, SourceDescriptor, DescriptorSize);
+        DestinationDescriptor->PhysicalStart = TempStart;
+        DestinationDescriptor->NumberOfPages = Grain / EFI_PAGE_SIZE;
+        DestinationDescriptor = NEXT_MEMORY_DESCRIPTOR(DestinationDescriptor, DescriptorSize);
+        ++TempIterator;
+        TempStart += Grain;
+        Left -= Grain;
+      }
+      if (Left) {
+        CopyMem(DestinationDescriptor, SourceDescriptor, DescriptorSize);
+        DestinationDescriptor->PhysicalStart = TempStart;
+        DestinationDescriptor->NumberOfPages = Left / EFI_PAGE_SIZE;
+        DestinationDescriptor = NEXT_MEMORY_DESCRIPTOR(DestinationDescriptor, DescriptorSize);
+        ++TempIterator;
+      }
+    } else {
+      CopyMem(DestinationDescriptor, SourceDescriptor, DescriptorSize);
+      DestinationDescriptor = NEXT_MEMORY_DESCRIPTOR(DestinationDescriptor, DescriptorSize);
+      ++TempIterator;
+    }
+  }
+  *UsedMemoryMapSize = TempIterator * DescriptorSize;
+  CopyMem(MemoryMapStart, TempMemoryMap, *UsedMemoryMapSize);
+
+  return EFI_SUCCESS;
+}
+
 /**
   This function returns a copy of the current memory map. The map is an array of
   memory descriptors, each of which describes a contiguous block of memory.
@@ -2155,6 +2230,13 @@ CoreGetMemoryMap (
   }
 
   MergeMemoryMap (MemoryMapStart, &BufferSize, Size);
+
+  Status = SplitMemoryMap (MemoryMapStart, &BufferSize, *MemoryMapSize, Size,
+                           256UL * 1024 * 1024 * 1024,
+                           16UL * 1024 * 1024 * 1024);
+  if (EFI_ERROR(Status))
+    return Status;
+
   MemoryMapEnd = (EFI_MEMORY_DESCRIPTOR *)((UINT8 *)MemoryMapStart + BufferSize);
 
   Status = EFI_SUCCESS;
