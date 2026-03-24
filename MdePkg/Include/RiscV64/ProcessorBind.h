@@ -98,9 +98,9 @@ typedef INT64 INTN __attribute__ ((aligned (8)));
 #define MAX_ADDRESS  0xFFFFFFFFFFFFFFFFULL
 
 ///
-/// Maximum usable address at boot time (39 bits using 4 KB pages in Supervisor mode)
+/// Maximum usable address at boot time (48 bits using 4 KB pages in Supervisor mode)
 ///
-#define MAX_ALLOC_ADDRESS  ((1ULL << 38) - 1)
+#define MAX_ALLOC_ADDRESS  0xFFFFFFFFFFFFULL
 
 ///
 /// Maximum legal RISC-V INTN and UINTN values.
