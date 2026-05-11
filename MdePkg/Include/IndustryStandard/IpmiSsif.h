@@ -66,7 +66,6 @@ typedef enum {
 /// Section 12.2 and 12.3
 ///
 typedef struct {
-  UINT8    Len;
   UINT8    NetFunc;
   UINT8    Command;
 } IPMI_SSIF_REQUEST_HEADER;
