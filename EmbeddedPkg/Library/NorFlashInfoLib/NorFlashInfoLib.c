@@ -141,6 +141,7 @@ STATIC CONST NOR_FLASH_INFO  NorFlashIds[] = {
   { L"w25q128fw",      { 0xef, 0x60, 0x18 }, 3, 256, 64 * 1024,  256,  NOR_FLASH_ERASE_4K                       },
   /* XTX */
   { L"xt25q512f",      { 0x0b, 0x60, 0x1a }, 3, 256, 64 * 1024,  1024, NOR_FLASH_ERASE_4K | NOR_FLASH_4B_ADDR   },
+  { L"gd25b512me",     { 0xc8, 0x47, 0x1a }, 3, 256, 64 * 1024,  1024, NOR_FLASH_ERASE_4K | NOR_FLASH_4B_ADDR   },
   { },                 /* Empty entry to terminate the list */
 };
 
