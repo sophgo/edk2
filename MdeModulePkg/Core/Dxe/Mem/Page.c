@@ -1622,16 +1622,32 @@ CoreInternalAllocatePages (
   // If not a specific address, then find an address to allocate
   //
   if (Type != AllocateAddress) {
-    Start = FindFreePages (
-              MaxAddress,
-              NumberOfPages,
-              MemoryType,
-              Alignment,
-              NeedGuard
-              );
+    Start = 0;
+
+    //
+    // For AllocateAnyPages (the caller expressed no placement preference),
+    // prefer memory below 4GiB. Emulated x64 OpROMs (MultiArchUefiPkg) are
+    // frequently not 64-bit clean and truncate pointers to 32 bits; on
+    // platforms whose usable DRAM lives high, an unconstrained top-down
+    // allocation lands far above 4GiB and such truncated pointers then fault.
+    // Fall back to the full address range if nothing is free below 4GiB.
+    //
+    if (Type == AllocateAnyPages) {
+      Start = FindFreePages (SIZE_4GB - 1, NumberOfPages, MemoryType, Alignment, NeedGuard);
+    }
+
     if (Start == 0) {
-      Status = EFI_OUT_OF_RESOURCES;
-      goto Done;
+      Start = FindFreePages (
+                MaxAddress,
+                NumberOfPages,
+                MemoryType,
+                Alignment,
+                NeedGuard
+                );
+      if (Start == 0) {
+        Status = EFI_OUT_OF_RESOURCES;
+        goto Done;
+      }
     }
   }
 
@@ -2656,15 +2672,20 @@ CoreAllocatePoolPages (
   UINT64  Start;
 
   //
-  // Find the pages to convert
+  // Find the pages to convert. Prefer memory below 4GiB (same rationale as
+  // CoreInternalAllocatePages) so pool consumed by emulated x64 OpROMs stays
+  // 32-bit-pointer-safe; fall back to the full range if the low region is full.
   //
-  Start = FindFreePages (
-            MAX_ALLOC_ADDRESS,
-            NumberOfPages,
-            PoolType,
-            Alignment,
-            NeedGuard
-            );
+  Start = FindFreePages (SIZE_4GB - 1, NumberOfPages, PoolType, Alignment, NeedGuard);
+  if (Start == 0) {
+    Start = FindFreePages (
+              MAX_ALLOC_ADDRESS,
+              NumberOfPages,
+              PoolType,
+              Alignment,
+              NeedGuard
+              );
+  }
 
   //
   // Convert it to boot services data
