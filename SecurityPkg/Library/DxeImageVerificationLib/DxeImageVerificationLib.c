@@ -1708,7 +1708,14 @@ DxeImageVerificationHandler (
   // Sanity check
   //
   if (File == NULL) {
-    return EFI_INVALID_PARAMETER;
+    //
+    // A NULL device path is legal for LoadImage() with a SourceBuffer
+    // (UEFI spec 2.9, EFI_BOOT_SERVICES.LoadImage). The image source is
+    // unknown, so it cannot be classified; defer to the caller rather
+    // than failing the load outright. Drivers such as MegaRAID SAS OpROMs
+    // rely on this to load their configuration applications from memory.
+    //
+    return EFI_SUCCESS;
   }
 
   //
